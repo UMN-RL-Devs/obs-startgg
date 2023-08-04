@@ -1,9 +1,11 @@
 import { EventRoster } from "../EventRoster";
 
 export interface GetEventRostersResponse {
-  event: {
-    entrants: {
-      nodes: EventRoster[];
+  data: {
+    event: {
+      entrants: {
+        nodes: EventRoster[];
+      };
     };
   };
 }

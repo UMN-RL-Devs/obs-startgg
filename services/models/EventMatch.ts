@@ -2,14 +2,14 @@ interface EventMatchSlot {
   entrant: {
     name: string; // Team Name
     initialSeedNum: number; // Seed of team
-  };
+  } | null;
   standing: {
     stats: {
       score: {
         value: number; // Series score
       };
     };
-  };
+  } | null;
 }
 
 // https://developer.start.gg/reference/set.doc.html

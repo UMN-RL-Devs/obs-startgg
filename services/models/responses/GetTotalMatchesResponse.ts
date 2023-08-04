@@ -1,8 +1,10 @@
 export interface GetTotalMatchesResponse {
-  event: {
-    sets: {
-      pageInfo: {
-        total: number;
+  data: {
+    event: {
+      sets: {
+        pageInfo: {
+          total: number;
+        };
       };
     };
   };

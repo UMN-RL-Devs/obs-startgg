@@ -1,6 +1,8 @@
 export interface GetEventIdResponse {
-  event: {
-    id: number;
-    name: string;
+  data: {
+    event: {
+      id: number;
+      name: string;
+    };
   };
 }

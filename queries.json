@@ -1,7 +1,7 @@
 {
     "GET_EVENT_ID": "query EventQuery($slug:String) {event(slug: $slug) {id name}}",
     "GET_TOTAL_ENTRANTS": "query EventEntrants($eventId: ID!, $page: Int!, $perPage: Int!) {event(id: $eventId) { entrants(query: {page: $page perPage: $perPage}) {pageInfo {total totalPages}}}}",
-    "GET_EVENT_MATCHES": "query EventSets($eventId: ID!, $page: Int!, $perPage: Int!) {event(id: $eventId) {sets(page: $page perPage: $perPage sortType: STANDARD) {nodes { startedAt completedAt fullRoundText slots { entrant { name } standing { stats { score { value }}}}}}}}",
+    "GET_EVENT_MATCHES": "query EventSets($eventId: ID!, $page: Int!, $perPage: Int!) {event(id: $eventId) {sets(page: $page perPage: $perPage sortType: STANDARD) {nodes { startedAt completedAt fullRoundText slots { entrant { name initialSeedNum } standing { stats { score { value }}}}}}}}",
     "GET_EVENT_ROSTERS": "query EventEntrants($eventId: ID!, $page: Int!, $perPage: Int!) {event(id: $eventId) { entrants(query: {page: $page perPage: $perPage}) {nodes {name participants {gamerTag}}}}}",
     "GET_TOTAL_MATCHES": "query EventSets($eventId: ID!, $page: Int!, $perPage: Int!) { event(id: $eventId) {sets(page: $page perPage: $perPage sortType: STANDARD) {pageInfo {total}}}}"
 }

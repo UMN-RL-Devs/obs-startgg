@@ -24,21 +24,17 @@ const sleep = (ms: number) => {
 
 /**
  * A function to obtain the start.gg Event ID given a tournament name and event name.
- * @param tournamentName A string representing the name of the tournament. It should be all lower case with dashes instead of spaces.
- * @param eventName A string representing the name of the event. It should be all lower case with dashes instead of spaces.
+ * @param slug The event slug from the start.gg URL.
  * @returns The requested Event ID.
  */
-const getEventId = async (
-  tournamentName: string,
-  eventName: string
-): Promise<number> => {
+const getEventId = async (slug: string): Promise<number> => {
   const response = await axiosService.post<GetEventIdResponse>(BASE_URL, {
     query: Queries.GET_EVENT_ID,
-    variables: { slug: `tournament/${tournamentName}/event/${eventName}` },
+    variables: { slug: slug },
   });
   sleep(1000);
 
-  return response.data.event.id;
+  return response.data.data.event.id;
 };
 
 /**
@@ -58,7 +54,7 @@ const getTotalEntrants = async (eventId: number): Promise<number> => {
 
   sleep(1000);
 
-  return response.data.event.entrants.total;
+  return response.data.data.event.entrants.total;
 };
 
 /**
@@ -78,7 +74,7 @@ const getTotalMatches = async (eventId: number): Promise<number> => {
 
   sleep(1000);
 
-  return response.data.event.sets.pageInfo.total;
+  return response.data.data.event.sets.pageInfo.total;
 };
 
 /**
@@ -110,7 +106,7 @@ const getEventRosters = async (eventId: number): Promise<EventRoster[]> => {
     );
 
     // Identify how many teams we actually received
-    eventRosters.push(...response.data.event.entrants.nodes);
+    eventRosters.push(...response.data.data.event.entrants.nodes);
     pageNumber += 1;
     entrantsFound += 25;
     sleep(1000);
@@ -149,9 +145,16 @@ const getEventMatches = async (eventId: number): Promise<EventMatch[]> => {
     );
 
     // Only push COMPLETED matches
-    for (let i = 0; i < response.data.event.sets.nodes.length; i++) {
-      const match = response.data.event.sets.nodes[i];
-      if (match.completedAt !== null && match.startedAt !== null) {
+    for (let i = 0; i < response.data.data.event.sets.nodes.length; i++) {
+      const match = response.data.data.event.sets.nodes[i];
+      if (
+        match.completedAt !== null &&
+        match.startedAt !== null &&
+        match.slots[0].standing &&
+        match.slots[0].standing.stats.score.value !== -1 &&
+        match.slots[1].standing &&
+        match.slots[1].standing.stats.score.value !== -1
+      ) {
         eventMatches.push(match);
       }
     }
@@ -166,6 +169,7 @@ const getEventMatches = async (eventId: number): Promise<EventMatch[]> => {
 
 // An interface to access all necessary start.gg endpoints and data.
 export const StartggService = {
+  sleep,
   getEventId,
   getTotalEntrants,
   getTotalMatches,

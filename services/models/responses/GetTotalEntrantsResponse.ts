@@ -1,8 +1,10 @@
 export interface GetTotalEntrantsResponse {
-  event: {
-    entrants: {
-      total: number;
-      totalPages: number;
+  data: {
+    event: {
+      entrants: {
+        total: number;
+        totalPages: number;
+      };
     };
   };
 }
