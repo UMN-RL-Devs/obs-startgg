@@ -55,13 +55,17 @@ const main = async () => {
     });
 
     // Now, send to output
-    console.log("Writing to output...");
-    OutputService.writeOutput(
-      slug,
-      initialMessage,
-      filteredMatches,
-      outputFilePath
-    );
+    if (filteredMatches.length > 0) {
+      console.log("Writing to output...");
+      OutputService.writeOutput(
+        slug,
+        initialMessage,
+        filteredMatches,
+        outputFilePath
+      );
+    } else {
+      console.log("No completed matches found...");
+    }
 
     // Sleep for 20 minutes
     console.log("Waiting 20 minutes before requesting new data...");
