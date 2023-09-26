@@ -12,10 +12,17 @@ interface EventMatchSlot {
   } | null;
 }
 
+interface EventPhaseGroup {
+  phase: {
+    name: string;
+  };
+}
+
 // https://developer.start.gg/reference/set.doc.html
 export interface EventMatch {
   startedAt: number | null; // Timestamp -- null = To be started
   completedAt: number | null; // Timestamp -- null = In Progress
   fullRoundText: string; // ex: Winners Round 4
   slots: EventMatchSlot[];
+  phaseGroup: EventPhaseGroup;
 }

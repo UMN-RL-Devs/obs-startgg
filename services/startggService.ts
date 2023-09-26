@@ -7,6 +7,7 @@ import { GetEventRostersResponse } from "./models/responses/GetEventRostersRespo
 import { GetEventMatchesResponse } from "./models/responses/GetEventMatchesResponse";
 import { GetTotalMatchesResponse } from "./models/responses/GetTotalMatchesResponse";
 import { EventMatch } from "./models/EventMatch";
+import { GetOutputName } from "./models/responses/GetOutputName";
 
 const BASE_URL = "https://api.start.gg/gql/alpha";
 
@@ -153,7 +154,8 @@ const getEventMatches = async (eventId: number): Promise<EventMatch[]> => {
         match.slots[0].standing &&
         match.slots[0].standing.stats.score.value !== -1 &&
         match.slots[1].standing &&
-        match.slots[1].standing.stats.score.value !== -1
+        match.slots[1].standing.stats.score.value !== -1 &&
+        !match.phaseGroup.phase.name.includes("Same School")
       ) {
         eventMatches.push(match);
       }
@@ -167,6 +169,34 @@ const getEventMatches = async (eventId: number): Promise<EventMatch[]> => {
   return eventMatches;
 };
 
+const getOutputName = async (slug: string): Promise<string> => {
+  const tourneySlug = slug.split("/")[1];
+  const eventNames = slug.split("/")[3].split("-");
+  const response = await axiosService.post<GetOutputName>(BASE_URL, {
+    query: Queries.GET_OUTPUT_NAME,
+    variables: { slug: tourneySlug },
+  });
+  sleep(1000);
+
+  const tourneyName = response.data.data.tournament.name;
+  let event = "";
+  for (let i = 0; i < response.data.data.tournament.events.length; i++) {
+    const eventName = response.data.data.tournament.events[i].name;
+    let foundMatching = true; // assume true
+    for (let j = 0; j < eventNames.length && foundMatching; j++) {
+      if (!eventName.toLowerCase().includes(eventNames[j])) {
+        foundMatching = false;
+      }
+    }
+    if (foundMatching) {
+      event = eventName;
+      break;
+    }
+  }
+
+  return tourneyName.toUpperCase() + " " + event.toUpperCase() + " ";
+};
+
 // An interface to access all necessary start.gg endpoints and data.
 export const StartggService = {
   sleep,
@@ -175,4 +205,5 @@ export const StartggService = {
   getTotalMatches,
   getEventRosters,
   getEventMatches,
+  getOutputName,
 };

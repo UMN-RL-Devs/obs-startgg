@@ -4,54 +4,15 @@
 
 import { writeFileSync } from "fs";
 import { EventMatch } from "./models/EventMatch";
+import { StartggService } from "./startggService";
 
 /**
  * A function to return the full start.gg Event name, which consists of both the tournament and event.
  * @param slug The start.gg event slug. This should include the tournament as well.
  * @returns A string representing the full start.gg Event name.
  */
-const formatEventName = (slug: string): string => {
-  // The slug should have the format: tournament/tournament-name/event/event-name
-  const urlParts = slug.split("/");
-  const tourneySlug = urlParts[1];
-  const eventSlug = urlParts[3];
-
-  // For both tourney and event slugs, split on the dashes then capitalize first letter of each word
-  const tourneyParts = tourneySlug.split("-");
-  let tourneyName = "";
-  for (let i = 0; i < tourneyParts.length; i++) {
-    if (
-      i > 0 &&
-      !isNaN(Number(tourneyParts[i - 1])) &&
-      !isNaN(Number(tourneyParts[i]))
-    ) {
-      tourneyName =
-        tourneyName.slice(0, tourneyName.length - 1) +
-        "-" +
-        tourneyParts[i] +
-        " ";
-    } else {
-      tourneyName += tourneyParts[i].toUpperCase() + " ";
-    }
-  }
-
-  const eventParts = eventSlug.split("-");
-  let eventName = "";
-  for (let i = 0; i < eventParts.length; i++) {
-    if (
-      i > 0 &&
-      !isNaN(Number(eventParts[i - 1])) &&
-      !isNaN(Number(eventParts[i]))
-    ) {
-      eventName =
-        eventName.slice(0, eventName.length - 1) + "-" + eventParts[i] + " ";
-    } else {
-      eventName += eventParts[i].toUpperCase() + " ";
-    }
-  }
-
-  // Even though this will include an extra space, we can account for that in our output.
-  return tourneyName + eventName;
+const formatEventName = async (slug: string): Promise<string> => {
+  return await StartggService.getOutputName(slug);
 };
 
 /**
@@ -65,26 +26,22 @@ const chronologicalSort = (a: EventMatch, b: EventMatch): number => {
   const bRound = b.fullRoundText;
   const roundsOrder = [
     "Winners Round 1",
-    "Losers Round 1",
     "Winners Round 2",
-    "Losers Round 2",
+    "Losers Round 1",
     "Winners Round 3",
-    "Losers Round 3",
-    "Winners Round 4",
-    "Losers Round 4",
-    "Winners Round 5",
-    "Losers Round 5",
-    "Winners Round 6",
-    "Losers Round 6",
-    "Winners Round 7",
-    "Losers Round 7",
-    "Winners Round 8",
-    "Losers Round 8",
     "Winners Quarter-Final",
-    "Losers Quarter-Final",
+    "Losers Round 2",
+    "Winners Round 4",
     "Winners Semi-Final",
-    "Losers Semi-Final",
+    "Losers Round 3",
+    "Winners Round 5",
     "Winners Final",
+    "Losers Round 4",
+    "Winners Round 6",
+    "Losers Round 5",
+    "Losers Quarter-Final",
+    "Losers Round 6",
+    "Losers Semi-Final",
     "Losers Final",
     "Grand Final",
   ];
@@ -108,7 +65,7 @@ const groupByRound = (matches: EventMatch[]) => {
   matches.sort((a, b) => chronologicalSort(a, b));
 };
 
-const writeOutput = (
+const writeOutput = async (
   slug: string,
   initialMessage?: string,
   matches?: EventMatch[],
@@ -125,27 +82,29 @@ const writeOutput = (
   let output = initialMessage + "  |  " ?? "";
 
   // Next, add the Event Name. Remember that we have an extra space from the helper function.
-  output += formatEventName(slug) + " |  ";
+  output += (await formatEventName(slug)) + " |  ";
 
-  // Go through each match and add it to the output. Remember to track the current round we are outputting.
-  let currentRound = matchesClone[0].fullRoundText;
-  output += currentRound + "  |  ";
-  for (let i = 0; i < matchesClone.length; i++) {
-    const match = matchesClone[i];
-    if (match.fullRoundText !== currentRound) {
-      // Add this to the output and update variable
-      currentRound = match.fullRoundText;
-      output += currentRound + "  |  ";
+  if (matchesClone.length > 0) {
+    // Go through each match and add it to the output. Remember to track the current round we are outputting.
+    let currentRound = matchesClone[0].fullRoundText;
+    output += currentRound + "  |  ";
+    for (let i = 0; i < matchesClone.length; i++) {
+      const match = matchesClone[i];
+      if (match.fullRoundText !== currentRound) {
+        // Add this to the output and update variable
+        currentRound = match.fullRoundText;
+        output += currentRound + "  |  ";
+      }
+
+      // Proceed with adding the match
+      output += `(${match.slots[0].entrant!.initialSeedNum}) ${
+        match.slots[0].entrant!.name
+      } ${match.slots[0].standing!.stats.score.value} - ${
+        match.slots[1].standing!.stats.score.value
+      } ${match.slots[1].entrant!.name} (${
+        match.slots[1].entrant!.initialSeedNum
+      })  |  `;
     }
-
-    // Proceed with adding the match
-    output += `(${match.slots[0].entrant!.initialSeedNum}) ${
-      match.slots[0].entrant!.name
-    } ${match.slots[0].standing!.stats.score.value} - ${
-      match.slots[1].standing!.stats.score.value
-    } ${match.slots[1].entrant!.name} (${
-      match.slots[1].entrant!.initialSeedNum
-    })  |  `;
   }
 
   // Write to the file

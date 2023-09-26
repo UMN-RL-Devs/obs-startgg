@@ -8,6 +8,6 @@
     "@types/node": "^20.4.5"
   },
   "scripts": {
-    "start": "ts-node index.ts"
+    "start": "set PORT=3001 && ts-node index.ts"
   }
 }

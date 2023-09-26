@@ -10,29 +10,22 @@ import { OutputService } from "./services/outputService";
 import { StartggService } from "./services/startggService";
 
 const getHelpMessage = (): string => {
-  return "Available Commands and Parameters:\n1st Argument: Full School Name\n2nd Argument: School Abbreviation\n3rd Argument: start.gg Event Slug\n4th Argument [OPTIONAL]: Output File Path\n5th Argument [OPTIONAL]: An initial message to always include in the ticker (promote socials, links, or other relevant information).\n\nTip:\nThe start.gg Event Slug is part of the URL when viewing a bracket or event page on start.gg. You will want to copy-and-paste everything starting with `tournament/` to the event name in all lowercase with dashes between the words.\nExample: `tournament/cca-summer-series-2023/event/west-qualifier-2\n\nFull Usage Example: npm start 'University of Minnesota' UMN tournament/cca-summer-series-2023/event/west-qualifier-2";
+  return "Available Commands and Parameters:\n1st Argument: start.gg Event Slug\n";
 };
 
 const main = async () => {
   // Get the command line arguments
   const allArguments = process.argv.slice(2);
-  if (allArguments.length < 3 || allArguments.length >= 6) {
+  if (allArguments.length < 1) {
     console.log(getHelpMessage());
     return;
   }
-  const fullSchoolName = allArguments[0];
-  const schoolAbbreviation = allArguments[1];
-  const slug = allArguments[2];
-  let outputFilePath = undefined;
-  if (allArguments.length >= 4) {
-    // Output file specified
-    outputFilePath = allArguments[3];
-  }
-  let initialMessage = undefined;
-  if (allArguments.length === 5) {
-    // Initial Message Specified
-    initialMessage = allArguments[4];
-  }
+  const slug = allArguments[0];
+  const fullSchoolName = "University of Minnesota";
+  const schoolAbbreviation = "UMN";
+  const outputFilePath = undefined;
+  const initialMessage =
+    "Welcome to Gopher Esports, the home for all things esports at the University of Minnesota! Follow us on Twitter @GopherEsports! Visit our website to learn more about our initiatives: gopheresports.umn.edu!";
 
   // We have our arguments. Start the loop!
   const eventId = await StartggService.getEventId(slug);
@@ -57,15 +50,16 @@ const main = async () => {
     // Now, send to output
     if (filteredMatches.length > 0) {
       console.log("Writing to output...");
-      OutputService.writeOutput(
-        slug,
-        initialMessage,
-        filteredMatches,
-        outputFilePath
-      );
     } else {
       console.log("No completed matches found...");
     }
+
+    await OutputService.writeOutput(
+      slug,
+      initialMessage,
+      filteredMatches,
+      outputFilePath
+    );
 
     // Sleep for 20 minutes
     console.log("Waiting 20 minutes before requesting new data...");
